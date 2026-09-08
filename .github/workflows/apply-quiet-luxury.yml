@@ -1,0 +1,49 @@
+name: Apply Quiet Luxury theme
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'theme-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-theme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply ALANIS Quiet Luxury palette
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          replacements = {
+              "--navy:#10233F;--navy-soft:#17304F;--charcoal:#1F2933;--white:#FFFFFF;--offwhite:#F7F6F2;--grey:#667085;--light-grey:#E7E9ED;--gold:#B3915B;--gold-dim:#8f7548;": "--navy:#342E2B;--navy-soft:#4A403A;--charcoal:#2B2927;--white:#FFFDF9;--offwhite:#F7E6CA;--grey:#746B65;--light-grey:#E7D9CE;--gold:#E8D59E;--gold-dim:#AD9C8E;--blush:#D9BBB0;--taupe:#AD9C8E;--cream:#F7E6CA;",
+              "rgba(16,35,63,0.06)": "rgba(52,46,43,0.07)",
+              "rgba(16,35,63,0.05)": "rgba(52,46,43,0.06)",
+              "background:rgba(255,255,255,0.92)": "background:rgba(255,253,249,0.94)",
+              "radial-gradient(1100px 500px at 85% -10%,rgba(179,145,91,0.10),transparent 60%),var(--offwhite)": "radial-gradient(1100px 500px at 85% -10%,rgba(217,187,176,0.48),transparent 60%),var(--cream)",
+              ".vision{background:var(--offwhite)}": ".vision{background:linear-gradient(135deg,var(--blush),var(--cream))}",
+              ".manifesto{background:var(--offwhite)}": ".manifesto{background:var(--cream)}",
+              "background:radial-gradient(900px 460px at 90% 0%,rgba(179,145,91,0.16),transparent 60%)": "background:radial-gradient(900px 460px at 90% 0%,rgba(232,213,158,0.22),transparent 60%)",
+              "border:1px solid rgba(179,145,91,0.5)": "border:1px solid rgba(232,213,158,0.62)",
+              ".btn-gold{background:var(--gold);color:var(--white)}.btn-gold:hover{background:var(--gold-dim)}": ".btn-gold{background:var(--gold);color:var(--charcoal)}.btn-gold:hover{background:var(--taupe);color:var(--white)}",
+          }
+          for old, new in replacements.items():
+              if old not in s:
+                  raise SystemExit(f'Expected source pattern not found: {old[:80]}')
+              s = s.replace(old, new)
+          p.write_text(s)
+          PY
+
+      - name: Commit themed website
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Apply Quiet Luxury ALANIS color palette"
+          git push
